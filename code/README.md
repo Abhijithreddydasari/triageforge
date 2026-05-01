@@ -60,6 +60,8 @@ schema.py        Pydantic models for structured output
 taxonomy.py      Corpus-derived product area taxonomy
 ```
 
+![](assets/architecture.png)
+
 ## Environment Variables
 
 | Variable | Required | Default | Description |
@@ -71,6 +73,7 @@ taxonomy.py      Corpus-derived product area taxonomy
 
 ## Key Design Choices
 
+- **Lightweight model by design:** Uses `llama-3.1-8b-instant` — 20x cheaper than 70b, sub-3s latency, sufficient quality for structured retrieval+synthesis tasks. See DESIGN.md for full cost analysis.
 - **Hybrid retrieval:** BM25 catches exact tokens (phone numbers, acronyms), dense catches semantic similarity, RRF fuses them.
 - **One LLM call per ticket:** Classification and response are coupled; splitting them adds latency without quality gain.
 - **Dual-signal product area:** LLM picks from closed taxonomy + chunk path consensus overrides incorrect LLM picks.
