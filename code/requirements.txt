@@ -1,0 +1,11 @@
+groq
+huggingface_hub
+sentence-transformers
+rank-bm25
+faiss-cpu
+pydantic>=2
+langdetect
+pandas
+numpy
+python-dotenv
+tqdm
