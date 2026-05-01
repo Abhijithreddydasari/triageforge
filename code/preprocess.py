@@ -6,7 +6,9 @@ import re
 from dataclasses import dataclass
 from typing import Optional
 
-from langdetect import detect, LangDetectException
+from langdetect import detect, DetectorFactory, LangDetectException
+
+DetectorFactory.seed = 42
 
 
 @dataclass

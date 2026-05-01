@@ -2,6 +2,8 @@
 
 Terminal-based AI agent that triages support tickets across HackerRank, Claude, and Visa using hybrid RAG over the provided corpus.
 
+> **For judges:** See [`DESIGN.md`](DESIGN.md) for full architecture rationale, pipeline diagrams, and design trade-offs.
+
 ## Setup
 
 ```bash
@@ -71,9 +73,10 @@ taxonomy.py      Corpus-derived product area taxonomy
 
 - **Hybrid retrieval:** BM25 catches exact tokens (phone numbers, acronyms), dense catches semantic similarity, RRF fuses them.
 - **One LLM call per ticket:** Classification and response are coupled; splitting them adds latency without quality gain.
-- **Corpus-derived taxonomy:** Product areas are a fixed set derived from the corpus folder structure, not LLM-invented.
+- **Dual-signal product area:** LLM picks from closed taxonomy + chunk path consensus overrides incorrect LLM picks.
+- **Direct tone:** Responses calibrated to match expected output style — no filler, numbered steps, specific data.
 - **PII redaction:** Emails, order IDs, card numbers stripped from responses via regex.
 - **Multilingual:** Non-English queries translated to English for retrieval; LLM responds in source language.
-- **Determinism:** temperature=0, seed=42, content-hashed index cache.
+- **Determinism:** temperature=0, seed=42, DetectorFactory.seed=42, content-hashed index cache.
 
 See [DESIGN.md](DESIGN.md) for full decision rationale.

@@ -9,7 +9,7 @@ Terminal-based support ticket triage agent. Classifies and responds to tickets a
 ```mermaid
 flowchart TD
     Input[CSV / Single Ticket / Interactive] --> Pre[Preprocess]
-    Pre --> |langdetect| LangCheck{English?}
+    Pre --> |langdetect<br/>seed=42| LangCheck{English?}
     LangCheck --> |yes| Ret[Hybrid Retriever]
     LangCheck --> |no| Trans[Translate to English] --> Ret
     
@@ -83,20 +83,33 @@ Closed set of canonical labels derived from corpus folder structure:
 | Visa | travel_support, general_support, fraud_protection, dispute_resolution |
 | General | general |
 
-LLM picks from this set — prevents inconsistent free-text labels.
+**Dual-signal approach:**
+1. LLM picks from the taxonomy (instructed to use chunk source paths as signal)
+2. Postprocess validates: if all retrieved chunks unanimously point to one area and the LLM disagrees, chunk consensus wins
 
-### 5. PII Redaction
+This prevents the "general" fallback problem — retrieval paths are a strong structural signal that doesn't depend on LLM interpretation.
+
+### 5. Response Tone
+
+Calibrated from expected outputs in `sample_support_tickets.csv`:
+- Direct: start with the answer, no filler preamble
+- Numbered steps for multi-step procedures
+- Include specific data (URLs, phone numbers, exact UI paths) from docs
+- Warm but efficient — professional without being verbose
+- No trailing platitudes ("I hope this helps!")
+
+### 6. PII Redaction
 
 Regex-based removal before output:
 - Email addresses → `[email redacted]`
 - Order IDs (cs_live_*, ord_*) → `[order_id redacted]`
 - Card numbers (16 digits) → `[card redacted]`
 
-### 6. Multilingual Support
+### 7. Multilingual Support
 
 Non-English tickets → translate query to English for retrieval → LLM responds in original language (instructed in system prompt rule 6).
 
-### 7. Error Handling
+### 8. Error Handling
 
 - Startup validation: checks API key format, data directory, index status
 - Per-ticket: caught exceptions → graceful escalation with error in justification
@@ -125,6 +138,6 @@ Non-English tickets → translate query to English for retrieval → LLM respond
 | Cost | $0 (Groq free tier) |
 | Index build | ~8 min (first run) |
 | Index load | ~3s (cached) |
-| Determinism | temperature=0, seed=42 |
+| Determinism | temperature=0, seed=42, DetectorFactory.seed=42 |
 | Status accuracy | 100% (sample set) |
 | Request type accuracy | 100% (sample set) |
