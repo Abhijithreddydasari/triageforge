@@ -1,3 +1,4 @@
 # Evaluation Failures
 
-(populated by eval/run_sample.py)
+- Row 7: ERROR — LLM call failed after 3 attempts. Last error: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kq1s76eaegdr3mf2rwxt0w8w` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 96743, Requested 3888. Please try again in 9m5.183999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+- Row 8: ERROR — LLM call failed after 3 attempts. Last error: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01kq1s76eaegdr3mf2rwxt0w8w` service tier `on_demand` on tokens per day (TPD): Limit 100000, Used 96725, Requested 3353. Please try again in 1m7.391999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}

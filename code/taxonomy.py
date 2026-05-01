@@ -52,15 +52,21 @@ def load_taxonomy(path: Path) -> Dict[str, Set[str]]:
 def area_from_chunk_path(source_path: str, data_dir: Path) -> str:
     """Derive product_area from a chunk's source_path.
 
-    e.g. 'data/hackerrank/settings/user-account/.../foo.md'
-      -> 'settings/user-account'  (depth-2 under company)
+    source_path is stored relative to repo root, e.g.:
+      'data/hackerrank/settings/user-account-settings/foo.md'
+    We extract the first folder level under data/<company>/ as the area.
+    This matches the expected label granularity (e.g. 'screen', 'community').
     """
     try:
-        p = Path(source_path)
-        rel = p.relative_to(data_dir)
-        parts = rel.parts  # ('hackerrank', 'settings', 'subcat', 'file.md')
-        if len(parts) <= 2:
-            return parts[0] if parts else "general"
-        return "/".join(parts[1:-1])
+        parts = Path(source_path).parts
+        if "data" in parts:
+            data_idx = parts.index("data")
+            after_data = parts[data_idx + 1:]
+            # after_data: (company, area1, ..., file.md)
+            if len(after_data) <= 2:
+                return after_data[0] if after_data else "general"
+            # Return just the first-level area folder
+            return after_data[1]
+        return "general"
     except (ValueError, IndexError):
         return "general"

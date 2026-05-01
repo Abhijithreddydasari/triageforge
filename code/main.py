@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import csv
 import sys
+import time
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -162,7 +163,9 @@ def main() -> None:
     print(f"[main] Loaded {len(tickets)} tickets from {args.input}")
 
     results: list[TicketResult] = []
-    for ticket in tqdm(tickets, desc="Processing tickets"):
+    for i, ticket in enumerate(tqdm(tickets, desc="Processing tickets")):
+        if i > 0:
+            time.sleep(2)
         try:
             result = process_ticket(
                 ticket, chunks_list, bm25, faiss_index, embed_model

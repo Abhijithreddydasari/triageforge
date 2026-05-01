@@ -16,8 +16,8 @@ from typing import Optional
 
 from schema import LLMResponse
 
-MAX_RETRIES = 3
-RETRY_BASE_DELAY = 2.0
+MAX_RETRIES = 5
+RETRY_BASE_DELAY = 10.0
 
 
 def _get_provider() -> str:

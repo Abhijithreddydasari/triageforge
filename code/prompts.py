@@ -23,7 +23,7 @@ Return a single JSON object with exactly these fields:
 {
   "status": "replied" or "escalated",
   "request_type": "product_issue" or "feature_request" or "bug" or "invalid",
-  "product_area": "<most relevant support category from the documentation>",
+  "product_area": "<concise snake_case category label, e.g. screen, community, privacy, travel_support, general_support, billing, account_settings, tests, interviews>",
   "response": "<user-facing answer>",
   "justification": "<1-3 sentences explaining your decision and which documentation you used>"
 }
@@ -102,13 +102,19 @@ def build_user_prompt(
     return "\n".join(parts)
 
 
+MAX_CHUNK_CHARS = 800
+
+
 def format_chunks_for_prompt(chunks: list) -> str:
-    """Format retrieved chunks as numbered context blocks."""
+    """Format retrieved chunks as numbered context blocks, trimmed for token budget."""
     if not chunks:
         return ""
     parts = []
-    for i, chunk in enumerate(chunks, 1):
+    for i, chunk in enumerate(chunks[:4], 1):
+        text = chunk.text
+        if len(text) > MAX_CHUNK_CHARS:
+            text = text[:MAX_CHUNK_CHARS] + "..."
         parts.append(
-            f"### Chunk {i} [source: {chunk.source_path}]\n{chunk.text}\n"
+            f"### Chunk {i} [source: {chunk.source_path}]\n{text}\n"
         )
     return "\n".join(parts)
