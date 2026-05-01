@@ -1,76 +1,81 @@
 # TriageForge — Support Ticket Triage Agent
 
-A terminal-based AI agent that triages support tickets across HackerRank, Claude, and Visa ecosystems using hybrid RAG (BM25 + dense retrieval) over the provided support corpus.
+Terminal-based AI agent that triages support tickets across HackerRank, Claude, and Visa using hybrid RAG over the provided corpus.
+
+> **For judges:** See [`DESIGN.md`](DESIGN.md) for full architecture rationale, pipeline diagrams, and design trade-offs.
 
 ## Setup
 
 ```bash
-# 1. Create a virtual environment
+# Create virtual environment
 python -m venv .venv
-# Windows
-.venv\Scripts\activate
-# macOS/Linux
-source .venv/bin/activate
+.venv\Scripts\activate        # Windows
+source .venv/bin/activate     # macOS/Linux
 
-# 2. Install dependencies
+# Install dependencies
 pip install -r requirements.txt
 
-# 3. Configure API keys
+# Configure API keys
 cp ../.env.example ../.env
-# Edit ../.env and add your GROQ_API_KEY (free at console.groq.com)
+# Edit ../.env — add GROQ_API_KEY (free at console.groq.com)
 ```
 
-## Usage
+## Run
 
 ```bash
-# Run on the test tickets (default paths)
+# Process all test tickets (default paths)
 python main.py
 
-# Or specify paths explicitly
+# Specify paths
 python main.py --input ../support_tickets/support_tickets.csv \
                --output ../support_tickets/output.csv
 
-# Force rebuild the corpus index
+# Force rebuild corpus index
 python main.py --force-reindex
 ```
 
-First run downloads the embedding model (~33MB) and builds the index (~1-2 min).
-Subsequent runs use the cached index and complete in ~90 seconds for 29 tickets.
+First run downloads the embedding model (~33MB) and builds the index (~8 min on CPU).
+Subsequent runs use cached index and complete in ~9 min for 29 tickets.
 
-## Evaluate against sample data
+## Evaluate
 
 ```bash
 python eval/run_sample.py
 ```
 
-This compares predictions against `sample_support_tickets.csv` and reports per-row accuracy.
+Compares predictions against `sample_support_tickets.csv`, reports per-row accuracy.
 
 ## Architecture
 
 ```
-main.py          CLI entry, orchestration loop
-indexer.py       Corpus chunking + BM25/FAISS index build (cached)
-retriever.py     Hybrid BM25 + dense retrieval with RRF fusion
-preprocess.py    Text cleaning + language detection
-llm.py           Groq/HuggingFace LLM client (JSON mode)
-prompts.py       System prompt + few-shot examples
-decide.py        Threshold-based escalation gate
-postprocess.py   Product area derivation + citation enforcement
+main.py          CLI orchestrator
+indexer.py       Corpus chunking + BM25/FAISS index (cached to data/index/)
+retriever.py     Hybrid BM25 + dense retrieval, RRF fusion
+preprocess.py    Text cleaning, language detection, query translation
+llm.py           Groq/HuggingFace LLM client (JSON mode, retries)
+prompts.py       System prompt, product area taxonomy, few-shot examples
+decide.py        Retrieval-score threshold gate for forced escalation
+postprocess.py   PII redaction, product_area validation, citation enforcement
 schema.py        Pydantic models for structured output
 taxonomy.py      Corpus-derived product area taxonomy
 ```
 
-## Environment variables
+## Environment Variables
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `GROQ_API_KEY` | Yes (if using Groq) | — | Groq API key |
-| `HF_TOKEN` | Yes (if using HF) | — | HuggingFace token |
+| `GROQ_API_KEY` | Yes (Groq) | — | Groq API key (free tier) |
+| `HF_TOKEN` | Yes (HF) | — | HuggingFace token |
 | `LLM_PROVIDER` | No | `groq` | `groq` or `huggingface` |
-| `LLM_MODEL` | No | per-provider | Override model name |
+| `LLM_MODEL` | No | per-provider | Model override |
 
-## Cost
+## Key Design Choices
 
-- Groq free tier: $0
-- HuggingFace fallback: ~$0.50 per full run (29 tickets)
-- Embeddings: local (BAAI/bge-small-en-v1.5), $0
+- **Hybrid retrieval:** BM25 catches exact tokens (phone numbers, acronyms), dense catches semantic similarity, RRF fuses them.
+- **One LLM call per ticket:** Classification and response are coupled; splitting them adds latency without quality gain.
+- **Dual-signal product area:** LLM picks from closed taxonomy + chunk path consensus overrides incorrect LLM picks.
+- **Direct tone:** Responses calibrated to match expected output style — warm, no filler, numbered steps, specific data.
+- **Multilingual:** Non-English queries translated to English for retrieval; LLM responds in source language; justification always in English.
+- **Determinism:** temperature=0, seed=42, DetectorFactory.seed=42, content-hashed index cache.
+
+See [DESIGN.md](DESIGN.md) for full decision rationale.
