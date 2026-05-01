@@ -1,8 +1,7 @@
-"""Post-process LLM output: validate enums, PII redaction, add citations."""
+"""Post-process LLM output: validate enums, add citations."""
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 from typing import List
 
@@ -20,18 +19,6 @@ VALID_PRODUCT_AREAS = {
     "travel_support", "general_support", "fraud_protection", "dispute_resolution",
     "general",
 }
-
-_EMAIL_RE = re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}")
-_ORDER_ID_RE = re.compile(r"\b(cs_live_[a-zA-Z0-9]+|ord_[a-zA-Z0-9]+|order[_\s]?id[:\s]*\S+)", re.IGNORECASE)
-_CC_RE = re.compile(r"\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b")
-
-
-def _redact_pii(text: str) -> str:
-    """Remove user PII (emails, order IDs, card numbers) from response text."""
-    text = _EMAIL_RE.sub("[email redacted]", text)
-    text = _ORDER_ID_RE.sub("[order_id redacted]", text)
-    text = _CC_RE.sub("[card redacted]", text)
-    return text
 
 
 def _area_from_chunks(chunks: List[Chunk], data_dir: Path) -> str:
@@ -94,8 +81,7 @@ def postprocess(
         if _chunk_area_consensus(chunks, data_dir):
             product_area = chunk_area
 
-    response_text = _redact_pii(llm_response.response)
-    response_text = _ensure_citation(response_text, chunks)
+    response_text = _ensure_citation(llm_response.response, chunks)
 
     return TicketResult(
         issue="",

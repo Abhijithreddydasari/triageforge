@@ -38,14 +38,14 @@ DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 INDEX_DIR = DATA_DIR / "index"
 
 OUTPUT_FIELDS = [
-    "issue",
-    "subject",
-    "company",
-    "response",
-    "product_area",
-    "status",
-    "request_type",
-    "justification",
+    "Issue",
+    "Subject",
+    "Company",
+    "Status",
+    "Product Area",
+    "Request Type",
+    "Response",
+    "Justification",
 ]
 
 
@@ -214,14 +214,14 @@ def write_results(results: list[TicketResult], output_path: Path) -> None:
         for r in results:
             writer.writerow(
                 {
-                    "issue": r.issue,
-                    "subject": r.subject,
-                    "company": r.company,
-                    "response": r.response,
-                    "product_area": r.product_area,
-                    "status": r.status,
-                    "request_type": r.request_type,
-                    "justification": r.justification,
+                    "Issue": r.issue,
+                    "Subject": r.subject,
+                    "Company": r.company,
+                    "Status": r.status.capitalize(),
+                    "Product Area": r.product_area,
+                    "Request Type": r.request_type,
+                    "Response": r.response,
+                    "Justification": r.justification,
                 }
             )
 

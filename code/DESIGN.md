@@ -92,24 +92,17 @@ This prevents the "general" fallback problem — retrieval paths are a strong st
 ### 5. Response Tone
 
 Calibrated from expected outputs in `sample_support_tickets.csv`:
-- Direct: start with the answer, no filler preamble
+- Direct but warm: brief natural acknowledgment, then straight to the answer
 - Numbered steps for multi-step procedures
 - Include specific data (URLs, phone numbers, exact UI paths) from docs
-- Warm but efficient — professional without being verbose
-- No trailing platitudes ("I hope this helps!")
+- "Knowledgeable, friendly colleague" — not a robot, not a customer service script
+- Clean endings without excessive pleasantries
 
-### 6. PII Redaction
+### 6. Multilingual Support
 
-Regex-based removal before output:
-- Email addresses → `[email redacted]`
-- Order IDs (cs_live_*, ord_*) → `[order_id redacted]`
-- Card numbers (16 digits) → `[card redacted]`
+Non-English tickets → translate query to English for retrieval → LLM responds in original language (instructed in system prompt rule 6). Justification is always written in English for evaluator readability.
 
-### 7. Multilingual Support
-
-Non-English tickets → translate query to English for retrieval → LLM responds in original language (instructed in system prompt rule 6).
-
-### 8. Error Handling
+### 7. Error Handling
 
 - Startup validation: checks API key format, data directory, index status
 - Per-ticket: caught exceptions → graceful escalation with error in justification
@@ -123,9 +116,8 @@ Non-English tickets → translate query to English for retrieval → LLM respond
 | No relevant docs | RRF threshold → force escalate | Unnecessary escalation |
 | Prompt injection | System prompt isolation | Novel attacks |
 | Hallucination | Grounding rules + citations | Subtle paraphrase |
-| Wrong product area | Closed taxonomy constraint | Category ambiguity |
+| Wrong product area | Closed taxonomy + chunk consensus | Category ambiguity |
 | Non-English query | Query translation before retrieval | Translation quality |
-| PII leak | Regex redaction | Novel PII formats |
 | Rate limits | Backoff + model fallback | Extended outages |
 | Missing API key | Startup validation with clear message | — |
 
