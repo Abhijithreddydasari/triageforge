@@ -269,9 +269,9 @@ Decisions made during the build, with rationale and rejection reasons. Update th
 - **Why:** BM25 catches exact tokens the dense model misses (phone numbers, "SCIM", "LTI", "3-D Secure"). Dense catches paraphrase and semantic similarity. RRF is parameter-free fusion.
 - **Rejected:** Dense-only (misses exact-token queries), BM25-only (misses semantic paraphrase), MMR (optimizes for diversity, not precision).
 
-### 10.4 Product area: derived from corpus folder paths, not LLM-guessed
-- **Why:** Generalizes to any corpus update. Folder structure is the ground truth taxonomy. No enum maintenance.
-- **Rejected:** Fixed enum (breaks on unseen data), LLM free-text (inconsistent, hallucination-prone).
+### 10.4 Product area: closed taxonomy in prompt, derived from corpus structure
+- **Why:** A fixed set of canonical labels (screen, community, privacy, travel_support, etc.) derived from the corpus folder structure is provided in the system prompt. The LLM picks from this closed set. Ensures consistency and aligns with evaluator expectations.
+- **Rejected:** Pure folder-path extraction (labels too deep/verbose), LLM free-text (inconsistent across runs), dynamic generation (hallucination-prone).
 
 ### 10.5 Escalation: retrieval-score threshold + prompt-level rules
 - **Why:** Threshold on top-1 retrieval score catches "no doc supports this" generically. Prompt rules handle sensitive/unauthorized requests. No keyword lists to maintain.

@@ -72,6 +72,40 @@ def _call_huggingface(system: str, user: str, model: str) -> str:
     return response.choices[0].message.content
 
 
+def call_llm_raw(system: str, user: str) -> str:
+    """Call the LLM and return raw text (no JSON parsing). Used for translation."""
+    provider = _get_provider()
+    model = _get_model()
+
+    if provider == "groq":
+        from groq import Groq
+        client = Groq(api_key=os.environ["GROQ_API_KEY"])
+        response = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ],
+            temperature=0,
+            seed=42,
+            max_tokens=512,
+        )
+        return response.choices[0].message.content
+    else:
+        from huggingface_hub import InferenceClient
+        client = InferenceClient(model=model, token=os.environ["HF_TOKEN"])
+        response = client.chat_completion(
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ],
+            temperature=0,
+            max_tokens=512,
+            seed=42,
+        )
+        return response.choices[0].message.content
+
+
 def call_llm(system_prompt: str, user_prompt: str) -> LLMResponse:
     """Call the configured LLM and return a validated LLMResponse.
 
