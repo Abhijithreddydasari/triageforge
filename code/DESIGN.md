@@ -92,7 +92,7 @@ Non-English tickets → translate query to English for retrieval → LLM respond
 
 ## CLI Commands
 
-![](assets/retrieval-pipeline.png)
+![](assets/cli-commands.png)
 
 ## Performance
 
